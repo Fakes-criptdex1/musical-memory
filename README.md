@@ -1662,8 +1662,7 @@ Tabs.hacker:Toggle({
     end,
 })
 
--- 1. Slider untuk mengatur kedalaman di bawah karakter (bisa diatur sampai -100 meter)
-Tabs.Tool:Slider({
+Tabs.hacker:Slider({
     Title = "NPC Under Feet Depth",
     Description = "Atur kedalaman NPC di bawah kaki kamu (sampai -100 meter)",
     Value = {
@@ -1677,7 +1676,7 @@ Tabs.Tool:Slider({
 })
 
 -- 2. Toggle untuk mengaktifkan mode "Klik NPC untuk Nempel di Bawah"
-Tabs.Tool:Toggle({
+Tabs.hacker:Toggle({
     Title = "Click NPC To Attach Under Feet",
     Description = "Klik NPC untuk menempelkannya di bawah kaki/tanah kakimu",
     Value = false,

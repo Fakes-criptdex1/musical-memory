@@ -219,54 +219,6 @@ Tabs.Player:Toggle({
     end,
 })
 
-Tabs.Player:Toggle({
-    Title = "InstantPrompt",
-    Description = "Interaksi prompt jadi instan dan bisa dikembalikan normal saat dimatikan",
-    Value = false,
-    Callback = function(Value)
-        InstantPromptEnabled = Value
-        local PromptService = game:GetService("ProximityPromptService")
-        
-        if InstantPromptEnabled then
-            -- Ubah prompt baru yang muncul secara real-time
-            PromptConn = PromptService.PromptShown:Connect(function(prompt)
-                if InstantPromptEnabled then
-                    if not OriginalDurations[prompt] then
-                        OriginalDurations[prompt] = prompt.HoldDuration
-                    end
-                    prompt.HoldDuration = 0
-                end
-            end)
-            
-            -- Ubah semua prompt yang sudah ada di map saat ini
-            for _, prompt in ipairs(workspace:GetDescendants()) do
-                if prompt:IsA("ProximityPrompt") then
-                    if not OriginalDurations[prompt] then
-                        OriginalDurations[prompt] = prompt.HoldDuration
-                    end
-                    prompt.HoldDuration = 0
-                end
-            end
-        else
-            -- Matikan koneksi pemantau
-            if PromptConn then
-                PromptConn:Disconnect()
-                PromptConn = nil
-            end
-            
-            -- KEMBALIKAN SEMUA PROMPT KE DURASI ASLINYA SAAT DIMATIKAN
-            for prompt, originalTime in pairs(OriginalDurations) do
-                if prompt and prompt.Parent then
-                    prompt.HoldDuration = originalTime
-                end
-            end
-            
-            -- Bersihkan memori tabel
-            OriginalDurations = {}
-        end
-    end,
-})
-
 Tabs.Player:Slider({
     Title = "Spin",
     Description = "Mengatur kecepatan putaran karakter",
@@ -1706,6 +1658,59 @@ Tabs.hacker:Toggle({
                     end
                 end)
             end)
+        end
+    end,
+})
+
+local InstantPromptEnabled = false
+local PromptConn
+-- Tabel untuk menyimpan durasi asli prompt sebelum diubah
+local OriginalDurations = {}
+
+Tabs.Player:Toggle({
+    Title = "Instant Proximity Prompt",
+    Description = "Interaksi prompt jadi instan dan bisa dikembalikan normal saat dimatikan",
+    Value = false,
+    Callback = function(Value)
+        InstantPromptEnabled = Value
+        local PromptService = game:GetService("ProximityPromptService")
+        
+        if InstantPromptEnabled then
+            -- Ubah prompt baru yang muncul secara real-time
+            PromptConn = PromptService.PromptShown:Connect(function(prompt)
+                if InstantPromptEnabled then
+                    if not OriginalDurations[prompt] then
+                        OriginalDurations[prompt] = prompt.HoldDuration
+                    end
+                    prompt.HoldDuration = 0
+                end
+            end)
+            
+            -- Ubah semua prompt yang sudah ada di map saat ini
+            for _, prompt in ipairs(workspace:GetDescendants()) do
+                if prompt:IsA("ProximityPrompt") then
+                    if not OriginalDurations[prompt] then
+                        OriginalDurations[prompt] = prompt.HoldDuration
+                    end
+                    prompt.HoldDuration = 0
+                end
+            end
+        else
+            -- Matikan koneksi pemantau
+            if PromptConn then
+                PromptConn:Disconnect()
+                PromptConn = nil
+            end
+            
+            -- KEMBALIKAN SEMUA PROMPT KE DURASI ASLINYA SAAT DIMATIKAN
+            for prompt, originalTime in pairs(OriginalDurations) do
+                if prompt and prompt.Parent then
+                    prompt.HoldDuration = originalTime
+                end
+            end
+            
+            -- Bersihkan memori tabel
+            OriginalDurations = {}
         end
     end,
 })

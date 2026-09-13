@@ -1585,7 +1585,7 @@ local TargetDropdown = Tabs.hacker:Dropdown({
     Values = getPlayerList(),
     Default = "Pilih Player",
     Callback = function(Selected)
-        _G.LockedTargetName = Selected
+        _G.LockedTargetNamSelectedcted
     end,
 })
 
@@ -1671,8 +1671,8 @@ Tabs.hacker:Slider({
     Description = "Atur jarak radius NPC agar otomatis glitch dan tiduran saat mendekat",
     Value = {
         Min = 5,
-        Max = 500, -- Bisa diatur sampai 100 meter atau lebih
-        Default = 30,
+        Max = 532, -- Bisa diatur sampai 100 meter atau lebih
+        Default = 500,
     },
     Callback = function(Value)
         GlitchLayRadius = Value

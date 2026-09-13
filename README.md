@@ -219,6 +219,54 @@ Tabs.Player:Toggle({
     end,
 })
 
+Tabs.Player:Toggle({
+    Title = "InstantPrompt",
+    Description = "Interaksi prompt jadi instan dan bisa dikembalikan normal saat dimatikan",
+    Value = false,
+    Callback = function(Value)
+        InstantPromptEnabled = Value
+        local PromptService = game:GetService("ProximityPromptService")
+        
+        if InstantPromptEnabled then
+            -- Ubah prompt baru yang muncul secara real-time
+            PromptConn = PromptService.PromptShown:Connect(function(prompt)
+                if InstantPromptEnabled then
+                    if not OriginalDurations[prompt] then
+                        OriginalDurations[prompt] = prompt.HoldDuration
+                    end
+                    prompt.HoldDuration = 0
+                end
+            end)
+            
+            -- Ubah semua prompt yang sudah ada di map saat ini
+            for _, prompt in ipairs(workspace:GetDescendants()) do
+                if prompt:IsA("ProximityPrompt") then
+                    if not OriginalDurations[prompt] then
+                        OriginalDurations[prompt] = prompt.HoldDuration
+                    end
+                    prompt.HoldDuration = 0
+                end
+            end
+        else
+            -- Matikan koneksi pemantau
+            if PromptConn then
+                PromptConn:Disconnect()
+                PromptConn = nil
+            end
+            
+            -- KEMBALIKAN SEMUA PROMPT KE DURASI ASLINYA SAAT DIMATIKAN
+            for prompt, originalTime in pairs(OriginalDurations) do
+                if prompt and prompt.Parent then
+                    prompt.HoldDuration = originalTime
+                end
+            end
+            
+            -- Bersihkan memori tabel
+            OriginalDurations = {}
+        end
+    end,
+})
+
 Tabs.Player:Slider({
     Title = "Spin",
     Description = "Mengatur kecepatan putaran karakter",
@@ -1661,108 +1709,6 @@ Tabs.hacker:Toggle({
         end
     end,
 })
-
-Tabs.hacker:Slider({
-    Title = "NPC Under Feet Depth",
-    Description = "Atur kedalaman NPC di bawah kaki kamu (sampai -100 meter)",
-    Value = {
-        Min = -100, -- Bisa diatur sampai ke bawah banget (-100 meter)
-        Max = 0,
-        Default = -3,
-    },
-    Callback = function(Value)
-        UnderDepth = Value
-    end,
-})
-
--- 2. Toggle untuk mengaktifkan mode "Klik NPC untuk Nempel di Bawah"
-Tabs.hacker:Toggle({
-    Title = "Click NPC To Attach Under Feet",
-    Description = "Klik NPC untuk menempelkannya di bawah kaki/tanah kakimu",
-    Value = false,
-    Callback = function(Value)
-        UnderAttachEnabled = Value
-        
-        if not Value and AttachedNPCUnder then
-            -- Kalau toggle dimatikan, lepas NPC-nya
-            local humanoid = AttachedNPCUnder:FindFirstChildOfClass("Humanoid")
-            if humanoid then
-                humanoid.PlatformStand = false
-                humanoid.WalkSpeed = 16
-            end
-            AttachedNPCUnder = nil
-            
-            WindUI:Notify({
-                Title = "NPC Released",
-                Content = "NPC di bawah berhasil dilepaskan.",
-                Duration = 2,
-            })
-        end
-    end,
-})
-
--- 3. Fungsi Deteksi Klik Mouse ke NPC
-local Mouse = LocalPlayer:GetMouse()
-Mouse.Button1Down:Connect(function()
-    if not UnderAttachEnabled then return end
-    
-    local target = Mouse.Target
-    if target and target.Parent then
-        local model = target.Parent
-        if model:IsA("Model") and model ~= LocalPlayer.Character then
-            local humanoid = model:FindFirstChildOfClass("Humanoid")
-            if humanoid and humanoid.Health > 0 then
-                -- Pastikan bukan player lain
-                local isPlayer = false
-                for _, p in ipairs(Players:GetPlayers()) do
-                    if p.Character == model then
-                        isPlayer = true
-                        break
-                    end
-                end
-                
-                if not isPlayer then
-                    AttachedNPCUnder = model
-                    humanoid.PlatformStand = true
-                    humanoid.WalkSpeed = 0
-                    humanoid.JumpPower = 0
-                    
-                    WindUI:Notify({
-                        Title = "NPC Attached Under",
-                        Content = "NPC " .. model.Name + " ditaruh di bawah kakimu!",
-                        Duration = 2,
-                    })
-                end
-            end
-        end
-    end
-end)
-
--- 4. Loop agar NPC selalu mengikuti tepat di bawah posisi player ke mana pun jalan
-task.spawn(function()
-    while true do
-        task.wait(0.03)
-        
-        if UnderAttachEnabled and AttachedNPCUnder and AttachedNPCUnder.Parent then
-            local Character = LocalPlayer.Character
-            if Character then
-                local RootPart = Character:FindFirstChild("HumanoidRootPart")
-                local npcRoot = AttachedNPCUnder:FindFirstChild("HumanoidRootPart") or AttachedNPCUnder:FindFirstChild("PrimaryPart")
-                
-                if RootPart and npcRoot then
-                    pcall(function()
-                        -- Mengatur posisi tepat di bawah kaki player sesuai angka slider kedalaman (UnderDepth)
-                        local targetCFrame = RootPart.CFrame * CFrame.new(0, UnderDepth, 0)
-                        
-                        npcRoot.CFrame = targetCFrame
-                        npcRoot.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                        npcRoot.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-                    end)
-                end
-            end
-        end
-    end
-end)
 
 --==================================================
 -- SETTINGS

@@ -1672,7 +1672,7 @@ Tabs.hacker:Slider({
     Value = {
         Min = 5,
         Max = 532, -- Bisa diatur sampai 100 meter atau lebih
-        Default = 500,
+        Default = 100,
     },
     Callback = function(Value)
         GlitchLayRadius = Value
